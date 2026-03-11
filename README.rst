@@ -12,7 +12,7 @@ Most of its code is a translation into Python of the Node.js package `togeojson 
 
 Installation
 =============
-Create a Python 3.8+ virtual environment and run ``poetry add kml2geojson``.
+Install from PyPI via, say, ``uv add kml2geojson``.
 
 
 Usage
@@ -23,13 +23,13 @@ For instructions on the latter, type ``k2g --help``.
 
 Documentation
 ==============
-Published `on Github pages <https://mrcagney.github.io/kml2geojson_docs/>`_.
+Published `on Github pages <https://araichev.github.io/kml2geojson_docs/>`_.
 
 
 Notes
 ========
 - This project's development status is Alpha.
-  I use this project for work and change it breakingly to suit my needs.
+  Alex uses this project for work and change it breakingly to suit my needs.
 - This project uses semantic versioning.
 - If you would like to fund additional features to this project, feel free to email me.
 - Thanks to `MRCagney <http://www.mrcagney.com/>`_ for periodically donating to this project.
