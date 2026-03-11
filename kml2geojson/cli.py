@@ -1,5 +1,5 @@
-import pathlib as pl
 import json
+import pathlib as pl
 
 import click
 

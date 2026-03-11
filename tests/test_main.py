@@ -1,5 +1,3 @@
-# tests/test_main.py
-
 import xml.dom.minidom as md
 
 import pytest
@@ -15,11 +13,6 @@ def _parse(xml: str):
 def _read_kml(path):
     with open(path, encoding="utf-8", errors="ignore") as src:
         return md.parseString(src.read())
-
-
-# ============================================================================
-# DOM helper functions
-# ============================================================================
 
 
 def test_get():
@@ -64,6 +57,7 @@ def test_attr():
     # section: returns attribute value
     root = _parse('<Placemark id="abc" />')
     node = m.get1(root, "Placemark")
+    assert node is not None
     assert m.attr(node, "id") == "abc"
 
     # section: returns empty string when attribute is missing
@@ -71,16 +65,15 @@ def test_attr():
 
 
 def test_val():
-    # section: strips whitespace around text
+    # section: strips surrounding whitespace
     root = _parse("<name>  Hello world  </name>")
-    node = root.documentElement
-    assert m.val(node) == "Hello world"
+    assert m.val(root.documentElement) == "Hello world"
 
-    # section: handles CDATA
+    # section: handles cdata content
     root = _parse("<description><![CDATA[ hello ]]></description>")
     assert m.val(root.documentElement) == "hello"
 
-    # section: returns empty string when no text content
+    # section: returns empty string when no text content exists
     root = _parse("<name></name>")
     assert m.val(root.documentElement) == ""
 
@@ -101,12 +94,12 @@ def test_numarray():
 
 
 def test_coords1():
-    # section: parses one KML coordinate tuple
+    # section: parses one kml coordinate tuple
     assert m.coords1(" -112.2,36.0,2357 ") == [-112.2, 36.0, 2357.0]
 
 
 def test_coords():
-    # section: parses multiple KML coordinate tuples
+    # section: parses multiple kml coordinate tuples
     actual = m.coords(
         """
         -112.0,36.1,0
@@ -160,17 +153,12 @@ def test_to_filename():
     # section: strips unsafe characters and normalizes spaces
     assert m.to_filename("% A dbla'{-+)(ç? ") == "A_dbla-ç"
 
-    # section: keeps dots, dashes, underscores
+    # section: keeps dots dashes and underscores
     assert m.to_filename("a b-c_d.txt") == "a_b-c_d.txt"
 
 
-# ============================================================================
-# Style builders
-# ============================================================================
-
-
 def test_build_rgb_and_opacity():
-    # section: parses 8-char KML color
+    # section: parses 8-char kml color
     assert m.build_rgb_and_opacity("ee001122") == ("#221100", 0.93)
 
     # section: parses 6-char color
@@ -184,7 +172,7 @@ def test_build_rgb_and_opacity():
 
 
 def test_build_svg_style():
-    # section: polygon/line style mapping
+    # section: maps polygon and line style fields
     root = _parse(
         """
         <Document>
@@ -209,13 +197,15 @@ def test_build_svg_style():
     )
     actual = m.build_svg_style(root)
     assert actual["#poly"]["fill"] == "#221100"
+    assert actual["#poly"]["fill-opacity"] == 0.93
     assert actual["#poly"]["stroke"] == "#554433"
+    assert actual["#poly"]["stroke-opacity"] == 1.0
     assert actual["#poly"]["stroke-width"] == 2.0
     assert actual["#icon"] == {"iconUrl": "https://example.com/pin.png"}
 
 
 def test_build_leaflet_style():
-    # section: polygon/line style mapping
+    # section: maps polygon and line style fields
     root = _parse(
         """
         <Document>
@@ -240,18 +230,15 @@ def test_build_leaflet_style():
     )
     actual = m.build_leaflet_style(root)
     assert actual["#poly"]["fillColor"] == "#221100"
+    assert actual["#poly"]["fillOpacity"] == 0.93
     assert actual["#poly"]["color"] == "#554433"
+    assert actual["#poly"]["opacity"] == 1.0
     assert actual["#poly"]["weight"] == 2.0
     assert actual["#icon"] == {"iconUrl": "https://example.com/pin.png"}
 
 
-# ============================================================================
-# GeoJSON builders
-# ============================================================================
-
-
 def test_build_geometry():
-    # section: point
+    # section: builds point geometry
     root = _parse(
         """
         <Placemark>
@@ -263,7 +250,7 @@ def test_build_geometry():
     assert actual["geoms"] == [{"type": "Point", "coordinates": [-113.0, 36.0, 0.0]}]
     assert actual["times"] == []
 
-    # section: polygon
+    # section: builds polygon geometry
     root = _parse(
         """
         <Placemark>
@@ -281,8 +268,11 @@ def test_build_geometry():
     )
     actual = m.build_geometry(root.documentElement)
     assert actual["geoms"][0]["type"] == "Polygon"
+    assert actual["geoms"][0]["coordinates"] == [
+        [[-1.0, 1.0, 0.0], [-2.0, 2.0, 0.0], [-3.0, 3.0, 0.0], [-1.0, 1.0, 0.0]]
+    ]
 
-    # section: gx track includes times
+    # section: gx track becomes linestring and captures times
     root = _parse(
         """
         <Placemark xmlns:gx="http://www.google.com/kml/ext/2.2">
@@ -295,15 +285,30 @@ def test_build_geometry():
     )
     actual = m.build_geometry(root.documentElement)
     assert actual["geoms"][0]["type"] == "LineString"
+    assert actual["geoms"][0]["coordinates"] == [[-113.0, 36.0, 0.0]]
     assert actual["times"] == [["2020-01-01T00:00:00Z"]]
+
+    # section: multigeometry recurses to child container
+    root = _parse(
+        """
+        <Placemark>
+          <MultiGeometry>
+            <Point><coordinates>-113.0,36.0,0</coordinates></Point>
+            <LineString><coordinates>-113.0,36.0,0 -114.0,37.0,0</coordinates></LineString>
+          </MultiGeometry>
+        </Placemark>
+        """
+    )
+    actual = m.build_geometry(root.documentElement)
+    assert sorted(geom["type"] for geom in actual["geoms"]) == ["LineString", "Point"]
 
 
 def test_build_feature():
-    # section: returns None when there is no geometry
+    # section: returns none when there is no geometry
     root = _parse("<Placemark><name>Empty</name></Placemark>")
     assert m.build_feature(root.documentElement) is None
 
-    # section: builds feature with properties, styles, extended data, timespan, id
+    # section: builds feature with properties styles extended data timespan and id
     root = _parse(
         """
         <Placemark id="pm1">
@@ -318,11 +323,21 @@ def test_build_feature():
             <begin>2020-01-01</begin>
             <end>2020-01-02</end>
           </TimeSpan>
+          <LineStyle>
+            <color>ff334455</color>
+            <width>2</width>
+          </LineStyle>
+          <PolyStyle>
+            <color>ee001122</color>
+            <fill>1</fill>
+            <outline>0</outline>
+          </PolyStyle>
           <Point><coordinates>-113.0,36.0,0</coordinates></Point>
         </Placemark>
         """
     )
     actual = m.build_feature(root.documentElement)
+    assert actual is not None
     assert actual["id"] == "pm1"
     assert actual["geometry"]["type"] == "Point"
     assert actual["properties"]["name"] == "Example"
@@ -334,8 +349,13 @@ def test_build_feature():
         "begin": "2020-01-01",
         "end": "2020-01-02",
     }
+    assert actual["properties"]["fill"] == "#221100"
+    assert actual["properties"]["fill-opacity"] == 0.93
+    assert actual["properties"]["stroke"] == "#554433"
+    assert actual["properties"]["stroke-opacity"] == 1.0
+    assert actual["properties"]["stroke-width"] == 2.0
 
-    # section: builds GeometryCollection for multiple geometries
+    # section: builds geometrycollection for multiple geometries
     root = _parse(
         """
         <Placemark>
@@ -345,8 +365,29 @@ def test_build_feature():
         """
     )
     actual = m.build_feature(root.documentElement)
+    assert actual is not None
     assert actual["geometry"]["type"] == "GeometryCollection"
     assert len(actual["geometry"]["geometries"]) == 2
+
+    # section: flattens one track time list into properties.times
+    root = _parse(
+        """
+        <Placemark xmlns:gx="http://www.google.com/kml/ext/2.2">
+          <gx:Track>
+            <when>2020-01-01T00:00:00Z</when>
+            <when>2020-01-01T00:01:00Z</when>
+            <gx:coord>-113.0 36.0 0</gx:coord>
+            <gx:coord>-113.1 36.1 1</gx:coord>
+          </gx:Track>
+        </Placemark>
+        """
+    )
+    actual = m.build_feature(root.documentElement)
+    assert actual is not None
+    assert actual["properties"]["times"] == [
+        "2020-01-01T00:00:00Z",
+        "2020-01-01T00:01:00Z",
+    ]
 
 
 def test_build_feature_collection():
@@ -416,8 +457,9 @@ def test_build_layers():
 
 
 def test_convert():
-    # section: converts from path into one named feature collection
     kml_path = DATA_DIR / "two_layers" / "two_layers.kml"
+
+    # section: converts from path into one named feature collection
     actual = m.convert(kml_path, feature_collection_name="main")
     assert len(actual) == 1
     assert actual[0]["type"] == "FeatureCollection"
