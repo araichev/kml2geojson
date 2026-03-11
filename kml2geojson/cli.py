@@ -37,12 +37,20 @@ def k2g(
     style type and save it to the output directory under the file name given by
     ``--style_filename`` which defaults to "style.json".
     """
-    style, *layers = m.convert(
+    result = m.convert(
         kml_path_or_buffer,
         style_type=style_type,
         separate_folders=separate_folders,
         feature_collection_name=feature_collection_name,
     )
+
+    if style_type is not None:
+        style, *layers = result
+        path = output_dir / style_filename
+        with path.open("w") as tgt:
+            json.dump(style, tgt)
+    else:
+        layers = list(result)
 
     # Create output directory if it doesn't exist
     output_dir = pl.Path(output_dir)
