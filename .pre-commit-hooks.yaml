@@ -1,6 +1,2 @@
-- id: nbstripout
-  name: nbstripout
-- id: black
-  name: black
 - id: ruff
   name: ruff
