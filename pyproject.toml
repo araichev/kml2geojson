@@ -1,33 +1,39 @@
-[tool.poetry]
+[project]
 name = "kml2geojson"
-version = "5.1.0"
+version = "5.1.1"
 description = "A Python library to covert KML files to GeoJSON files"
-authors = ["Alex Raichev <alex@raichev.net>"]
-license = "MIT"
 readme = "README.rst"
-homepage = "https://github.com/mrcagney/kml2geojson"
-documentation = "https://mrcagney.github.io/kml2geojson_docs"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+    { name = "Alex Raichev", email = "alex@raichev.net" },
+]
+dependencies = [
+    "click>=8.0.1",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.8, <4.0"
-click = ">=8.0.1"
+[project.urls]
+Homepage = "https://github.com/araichev/kml2geojson"
+Documentation = "https://araichev.github.io/kml2geojson_docs"
 
-[tool.poetry.group.githubtest.dependencies]
-pytest = ">=6.2.5"
-
-[tool.poetry.group.dev.dependencies]
-jupyter = ">=1.0.0"
-pytest = ">=6.2.5"
-Sphinx = ">=4.2.0"
-publish-sphinx-docs = ">=1.0.3"
-pre-commit = ">=2.18.1"
-black = ">=22.3.0"
-ruff = ">=0.0.259"
-nbstripout = ">=0.6.1"
+[project.scripts]
+k2g = "kml2geojson.cli:k2g"
 
 [build-system]
-requires = ["poetry-core>=1"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry.scripts]
-k2g = "kml2geojson.cli:k2g"
+[dependency-groups]
+dev = [
+    "pytest>=6.2.5",
+    "Sphinx>=4.2.0",
+    "pre-commit>=2.18.1",
+    "ruff>=0.0.259",
+]
+
+[tool.ruff]
+line-length = 90
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E501", "E731", "F401", "F403"]

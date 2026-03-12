@@ -1,5 +1,5 @@
-import pathlib as pl
 import json
+import pathlib as pl
 
 import click
 
@@ -23,44 +23,40 @@ def k2g(
 ):
     """
     Given a path to a KML file or given a KML file, convert it to a a GeoJSON
-    FeatureCollection with name = ``--feature_collection_name``
-    (which defaults to 'main') and save the GeoJSON to the file '<name>.geojson'
-    in the given output directory.
+    FeatureCollection with name = ``--feature_collection_name`` (which defaults
+    to 'main') and save the GeoJSON to the file '.geojson' in the given output
+    directory.
 
-    If ``--separate_folders``, then create several GeoJSON files,
-    one for each folder in the KML file that contains geodata or that has a descendant
-    node that contains geodata.
-    Warning: this can produce GeoJSON files with the same geodata in case the KML file
-    has nested folders with geodata.
+    If ``--separate_folders``, then create several GeoJSON files, one for each
+    folder in the KML file that contains geodata or that has a descendant node
+    that contains geodata. Warning: this can produce GeoJSON files with the
+    same geodata in case the KML file has nested folders with geodata.
 
-    If ``--style_type`` is specified, then also build a JSON style file of the given
-    style type and save it to the output directory under the file name given by
-    ``--style_filename`` which defaults to "style.json".
+    If ``--style_type`` is specified, then also build a JSON style file of the
+    given style type and save it to the output directory under the file name
+    given by ``--style_filename`` which defaults to "style.json".
     """
-    style, *layers = m.convert(
+    result = m.convert(
         kml_path_or_buffer,
         style_type=style_type,
         separate_folders=separate_folders,
         feature_collection_name=feature_collection_name,
     )
 
-    # Create output directory if it doesn't exist
     output_dir = pl.Path(output_dir)
-    if not output_dir.exists():
-        output_dir.mkdir(parents=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
     output_dir = output_dir.resolve()
 
-    # Write style file
-    path = output_dir / style_filename
-    with path.open("w") as tgt:
-        json.dump(style, tgt)
+    if style_type is not None:
+        style, *layers = result
+        with (output_dir / style_filename).open("w") as tgt:
+            json.dump(style, tgt)
+    else:
+        layers = list(result)
 
-    # Create filenames for layers
     stems = m.disambiguate(m.to_filename(layer["name"]) for layer in layers)
     filenames = [f"{stem}.geojson" for stem in stems]
 
-    # Write layer files
-    for i in range(len(layers)):
-        path = output_dir / filenames[i]
-        with path.open("w") as tgt:
-            json.dump(layers[i], tgt)
+    for layer, filename in zip(layers, filenames):
+        with (output_dir / filename).open("w") as tgt:
+            json.dump(layer, tgt)
