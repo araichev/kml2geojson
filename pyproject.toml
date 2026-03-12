@@ -1,6 +1,6 @@
 [project]
 name = "kml2geojson"
-version = "5.1.0"
+version = "5.1.1"
 description = "A Python library to covert KML files to GeoJSON files"
 readme = "README.rst"
 requires-python = ">=3.11"
@@ -31,6 +31,10 @@ dev = [
     "pre-commit>=2.18.1",
     "ruff>=0.0.259",
 ]
-githubtest = [
-    "pytest>=6.2.5",
-]
+
+[tool.ruff]
+line-length = 90
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E501", "E731", "F401", "F403"]

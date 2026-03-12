@@ -2,7 +2,7 @@ kml2geojson
 ************
 .. image:: https://github.com/araichev/kml2geojson/actions/workflows/test.yml/badge.svg
     
-kml2geojson is a Python 3.10+ package to convert KML files to GeoJSON files.
+kml2geojson is a Python 3.11+ package to convert KML files to GeoJSON files.
 Most of its code is a translation into Python of the Node.js package `togeojson <https://github.com/mapbox/togeojson>`_, but kml2geojson also adds the following features.
 
 - Preserve KML object styling, such as color and opacity
@@ -28,8 +28,7 @@ Published `on Github pages <https://araichev.github.io/kml2geojson_docs/>`_.
 
 Notes
 ========
-- This project's development status is Alpha.
-  Alex uses this project for work and change it breakingly to suit my needs.
+- This project's development status is Beta.
 - This project uses semantic versioning.
 - If you would like to fund additional features to this project, feel free to email me.
 - Thanks to `MRCagney <http://www.mrcagney.com/>`_ for periodically donating to this project.
@@ -52,6 +51,9 @@ If you want to help develop this project, here is some background reading.
 
 Changes
 ========
+
+5.1.1, 2026-03-12
+-----------------
 
 5.1.0, 2022-04-29
 -----------------
