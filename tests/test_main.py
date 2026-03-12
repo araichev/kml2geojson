@@ -1,5 +1,5 @@
 import xml.dom.minidom as md
-
+import io
 import pytest
 
 from .context import DATA_DIR
@@ -389,6 +389,37 @@ def test_build_feature():
         "2020-01-01T00:01:00Z",
     ]
 
+    # section: preserves one times list per track when multiple tracks are present
+    root = _parse(
+        """
+        <Placemark xmlns:gx="http://www.google.com/kml/ext/2.2">
+          <gx:MultiTrack>
+            <gx:Track>
+              <when>2020-01-01T00:00:00Z</when>
+              <when>2020-01-01T00:01:00Z</when>
+              <gx:coord>-113.0 36.0 0</gx:coord>
+              <gx:coord>-113.1 36.1 1</gx:coord>
+            </gx:Track>
+            <gx:Track>
+              <when>2020-01-02T00:00:00Z</when>
+              <gx:coord>-114.0 37.0 0</gx:coord>
+            </gx:Track>
+          </gx:MultiTrack>
+        </Placemark>
+        """
+    )
+    actual = m.build_feature(root.documentElement)
+    assert actual is not None
+    assert actual["geometry"]["type"] == "GeometryCollection"
+    assert [g["type"] for g in actual["geometry"]["geometries"]] == [
+        "LineString",
+        "LineString",
+    ]
+    assert actual["properties"]["times"] == [
+        ["2020-01-01T00:00:00Z", "2020-01-01T00:01:00Z"],
+        ["2020-01-02T00:00:00Z"],
+    ]
+
 
 def test_build_feature_collection():
     # section: includes only placemarks that produce features
@@ -484,6 +515,21 @@ def test_convert():
     style, *layers = actual
     assert isinstance(style, dict)
     assert len(layers) == 1
+
+    # section: accepts text and binary file-like buffers
+    with open(kml_path, encoding="utf-8", errors="ignore") as src:
+        text_buffer = io.StringIO(src.read())
+
+    actual = m.convert(text_buffer, feature_collection_name="main")
+    assert len(actual) == 1
+    assert actual[0]["type"] == "FeatureCollection"
+    assert actual[0]["name"] == "main"
+
+    with open(kml_path, "rb") as src:
+        binary_buffer = io.BytesIO(src.read())
+
+    actual = m.convert(binary_buffer, separate_folders=True)
+    assert [layer["name"] for layer in actual] == ["%Bingo", "#Bingo"]
 
     # section: rejects unsupported style type
     with pytest.raises(ValueError, match="style type must be one of"):
