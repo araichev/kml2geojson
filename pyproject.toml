@@ -27,7 +27,6 @@ build-backend = "hatchling.build"
 dev = [
     "pytest>=6.2.5",
     "Sphinx>=4.2.0",
-    "publish-sphinx-docs>=1.0.3",
     "pre-commit>=2.18.1",
     "ruff>=0.0.259",
 ]

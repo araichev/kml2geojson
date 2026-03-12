@@ -9,6 +9,11 @@ Most of its code is a translation into Python of the Node.js package `togeojson 
 - Optionally create a style dictionary cataloging all the KML styles used
 - Optionally create several GeoJSON FeatureCollections, one for each KML folder present
 
+Authors
+========
+- Alex Raichev (2015-10-03), maintainer
+
+
 
 Installation
 =============
@@ -22,9 +27,16 @@ For instructions on the latter, type ``k2g --help``.
 
 
 Documentation
-==============
-Published `on Github pages <https://araichev.github.io/kml2geojson_docs/>`_.
+=============
+The documentation is built via Sphinx from the source code in the ``docs`` directory then published to Github Pages at `araichev.github.io/kml2geojson_docs <https://araichev.github.io/kml2geojson_docs>`_.
 
+
+Contributing
+===================
+If you want to help develop this project, here is some background reading.
+
+- The `KML reference <https://developers.google.com/kml/documentation/kmlreference?hl=en>`_
+- Python's `Minimal DOM implementation <https://docs.python.org/3.4/library/xml.dom.minidom.html>`_, which this project uses to parse KML files
 
 Notes
 ========
@@ -36,24 +48,26 @@ Notes
   Please issue pull requests from a feature branch into the ``develop`` branch and include tests.
 
 
-Authors
-========
-- Alex Raichev (2015-10-03), maintainer
 
-
-Contributing
-===================
-If you want to help develop this project, here is some background reading.
-
-- The `KML reference <https://developers.google.com/kml/documentation/kmlreference?hl=en>`_ 
-- Python's `Minimal DOM implementation <https://docs.python.org/3.4/library/xml.dom.minidom.html>`_, which this project uses to parse KML files
-
+Maintainer Notes
+================
+- After pushing to master, update the published docs via ``uv run make -C docs publish-docs-github``
 
 Changes
 ========
 
 5.1.1, 2026-03-12
 -----------------
+- Migrated packaging metadata to PEP 621 in ``pyproject.toml`` and switch the
+  build backend to Hatchling.
+- Updated project URLs to the current repository and documentation site.
+- Raised the declared minimum Python version in package metadata.
+- Modernized GitHub Actions to use ``uv`` and refresh the Python test matrix.
+- Updated README installation and documentation guidance.
+- Fixed ``k2g`` CLI output handling for styled and unstyled conversion paths.
+- Restructured tests to use one test function per API function with sectioned
+  behavioral coverage.
+- Added CLI integration tests for the no-style and styled separate-folders paths.
 
 5.1.0, 2022-04-29
 -----------------
