@@ -1,3 +1,12 @@
+[!IMPORTANT]
+
+**This repository has moved to Codeberg, because Github is deteriorating**.
+
+Development continues at **https://codeberg.org/araichev/kml2geojson**, so please file issues, pull requests, etc. there.
+This GitHub repository is archived.
+
+---
+
 kml2geojson
 ************
 .. image:: https://github.com/araichev/kml2geojson/actions/workflows/test.yml/badge.svg
