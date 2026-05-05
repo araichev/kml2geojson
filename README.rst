@@ -1,11 +1,3 @@
-[!IMPORTANT]
-**This repository has moved.**
-Because GitHub's performance has degraded significantly, this repository has moved to Forgejo. Active development continues at **https://git.disroot.org/araichev/kml2geojson**.
-This GitHub copy is archived and will not receive updates, issues, or pull requests.
-Please file issues and submit changes on Forgejo.
-
----
-
 kml2geojson
 ************
 .. image:: https://github.com/araichev/kml2geojson/actions/workflows/test.yml/badge.svg
